@@ -6,5 +6,19 @@
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<div class="row">
+    <div class="col-4">
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="" class="form-label">Choose file for upload</label>
+                <input type="file" class="form-control" asp-for="Upload"/>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Send to minio</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-8"></div>
 </div>
