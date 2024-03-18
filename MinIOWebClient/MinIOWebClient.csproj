@@ -4,6 +4,11 @@
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>5624060d-7361-438f-ad99-2d647914d467</UserSecretsId>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Minio" Version="6.0.2" />
+    </ItemGroup>
 
 </Project>
