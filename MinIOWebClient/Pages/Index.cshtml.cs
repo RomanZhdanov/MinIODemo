@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Reactive.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Minio;
+using Minio.DataModel;
 using Minio.DataModel.Args;
 
 namespace MinIOWebClient.Pages;
@@ -15,9 +17,13 @@ public class IndexModel : PageModel
         _logger = logger;
         _minio = minio;
     }
+    
+    [BindProperty]
+    public IList<Item> StorageItems { get; set; }
 
-    public void OnGet()
+    public async Task OnGetAsync()
     {
+        await LoadStorageItems();
     }
 
     [BindProperty]
@@ -40,5 +46,21 @@ public class IndexModel : PageModel
             
             await _minio.PutObjectAsync(args).ConfigureAwait(false);
         }
+
+        await LoadStorageItems();
+    }
+
+    private async Task LoadStorageItems()
+    {
+        string bucketName = "demo";
+        string prefix = null;
+        bool recursive = true;
+        
+        var listArgs = new ListObjectsArgs()
+            .WithBucket(bucketName)
+            .WithPrefix(prefix)
+            .WithRecursive(recursive);
+        
+        StorageItems = await _minio.ListObjectsAsync(listArgs).ToList();
     }
 }

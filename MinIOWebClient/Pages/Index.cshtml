@@ -20,5 +20,17 @@
             </div>
         </form>
     </div>
-    <div class="col-8"></div>
+    <div class="col-8">
+        <div class="card">
+            <div class="card-header">
+                Items in minio storage
+            </div>
+            <ul class="list-group list-group-flush">
+                @foreach (var item in Model.StorageItems)
+                {
+                    <li class="list-group-item">@item.Key</li>
+                }
+            </ul>
+        </div>
+    </div>
 </div>
