@@ -5,32 +5,101 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+    <h1 class="display-4">MinIO Client Demo</h1>
 </div>
 
 <div class="row">
-    <div class="col-4">
-        <form method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="" class="form-label">Choose file for upload</label>
-                <input type="file" class="form-control" asp-for="Upload"/>
-            </div>
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Send to minio</button>
-            </div>
-        </form>
-    </div>
-    <div class="col-8">
+    <div class="col-5">
         <div class="card">
-            <div class="card-header">
-                Items in minio storage
-            </div>
-            <ul class="list-group list-group-flush">
-                @foreach (var item in Model.StorageItems)
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" class="mb-3">
+                    <div class="mb-3">
+                        <label for="" class="form-label">Choose file for upload</label>
+                        <input type="file" class="form-control" asp-for="Upload"/>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Send to MinIO</button>
+                    </div>
+                </form>
+                @if (!string.IsNullOrEmpty(Model.UploadUrl))
                 {
-                    <li class="list-group-item">@item.Key</li>
+                    <div class="alert alert-success text-center">
+                        FIle <strong>@Model.UploadFileName</strong> uploaded successfully!
+                    </div>
+                    <div>
+                        <label for="" class="form-label">Share URL:</label>
+                        <textarea type="text" disabled="disabled" class="form-control" rows="5" asp-for="UploadUrl"></textarea>
+                    </div>
                 }
-            </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-7">
+        <div class="card">
+            <div class="card-header text-center">
+                Objects in MinIO storage
+            </div>
+            @if (Model.StorageItems != null && Model.StorageItems.Any())
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var item in Model.StorageItems)
+                    {
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="mb-1">@item.Key</h5>
+                                    <small class="text-secondary">Last updated: @item.LastModifiedDateTime.Value.ToShortDateString() @item.LastModifiedDateTime.Value.ToShortTimeString()</small>
+                                </div>
+                                <div>
+                                    <a class="btn btn-sm btn-primary" asp-route-fileName="@item.Key" asp-page-handler="DownloadFile">Download</a>
+                                    <a class="btn btn-sm btn-secondary share" asp-route-fileName="@item.Key" asp-page-handler="ShareUrl" data-toggle="modal" data-target="#share-modal">Share</a>
+                                    <a class="btn btn-sm btn-danger" asp-route-fileName="@item.Key" asp-page-handler="DeleteFile">Delete</a>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="card-body">
+                    <div class="alert alert-primary" role="alert">
+                        The storage is empty
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
+<div class="modal" tabindex="-1" id="share-modal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Share file</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Modal body text goes here.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+@section scripts{
+    <script>
+        const myModal = new bootstrap.Modal(document.getElementById('share-modal'))
+
+        $(function () {
+            $('a.share').on('click', function (event) {
+                event.preventDefault();
+                const loadUrl = $(this).attr('href');
+                $('.modal-body').load(loadUrl);
+                myModal.show();
+            });
+        })
+    </script>
+}

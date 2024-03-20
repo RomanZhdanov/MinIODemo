@@ -30,9 +30,17 @@ public class MinioInitialiser
     {
         try
         {
-            await _minio.MakeBucketAsync(
-                new MakeBucketArgs()
-                    .WithBucket("demo"));
+            var bucketName = "demo";
+            
+            var beArgs = new BucketExistsArgs()
+                .WithBucket(bucketName);
+            bool found = await _minio.BucketExistsAsync(beArgs).ConfigureAwait(false);
+            if (!found)
+            {
+                var mbArgs = new MakeBucketArgs()
+                    .WithBucket(bucketName);
+                await _minio.MakeBucketAsync(mbArgs).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {

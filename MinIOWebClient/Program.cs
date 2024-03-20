@@ -1,6 +1,14 @@
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 using Minio;
 using MinIOWebClient.Models;
 using MinIOWebClient.Services;
+
+var supportedCultures = new[]
+{
+    new CultureInfo("ru-RU"),                
+
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +45,12 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseRequestLocalization(new RequestLocalizationOptions{
+    DefaultRequestCulture = new RequestCulture("ru-RU"),
+    SupportedCultures=supportedCultures,
+    SupportedUICultures=supportedCultures
+});
 
 await app.InitialiseMinioAsync();
 
