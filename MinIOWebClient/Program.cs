@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Localization;
 using Minio;
 using MinIOWebClient.Models;
@@ -35,6 +36,17 @@ builder.Services.AddMinio(configureClient =>
 });
 
 builder.Services.AddScoped<MinioInitialiser>();
+
+builder.Services.Configure<FormOptions>(x =>
+{
+    x.ValueLengthLimit = 5000; // Limit on individual form values
+    x.MultipartBodyLengthLimit = 737280000; // Limit on form body size
+    x.MultipartHeadersLengthLimit = 737280000; // Limit on form header size
+});
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = 837280000; // Limit on request body size
+});
 
 var app = builder.Build();
 
