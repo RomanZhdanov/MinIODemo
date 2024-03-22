@@ -16,6 +16,7 @@
                     <div class="mb-3">
                         <label for="" class="form-label">Choose file for upload</label>
                         <input type="file" class="form-control" asp-for="Upload"/>
+                        <span asp-validation-for="Upload"></span>
                     </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Send to MinIO</button>
@@ -25,11 +26,16 @@
                 {
                     <div class="mt-3">
                         <div class="alert alert-success text-center">
-                            FIle <strong>@Model.UploadFileName</strong> uploaded successfully!
+                            <p>FIle <strong>@Model.UploadFileName</strong> uploaded successfully!</p>
+                            <p class="mb-0">Uploading to minio took: <strong>@Model.UploadTimeString</strong></p>
+                            <p class="mb-0">Whole request took: <strong>@Model.UploadRequestTimeString</strong></p>
                         </div>
                         <div>
                             <label for="" class="form-label">Share URL:</label>
                             <textarea type="text" disabled="disabled" class="form-control" rows="5" asp-for="UploadUrl"></textarea>
+                            <div class="alert alert-warning text-center mt-3 mb-0">
+                                Link expires in <strong>@Model.ExpireString</strong>!
+                            </div>
                         </div>
                     </div>
                 }
@@ -93,6 +99,7 @@
 
 
 @section scripts{
+    <partial name="_ValidationScriptsPartial" />
     <script>
         const myModal = new bootstrap.Modal(document.getElementById('share-modal'))
 

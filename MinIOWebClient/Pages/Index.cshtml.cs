@@ -1,9 +1,13 @@
-﻿using System.Reactive.Linq;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Reactive.Linq;
+using System.Timers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Minio;
 using Minio.DataModel;
 using Minio.DataModel.Args;
+using MinIOWebClient.Extensions;
 using MinIOWebClient.Models;
 
 namespace MinIOWebClient.Pages;
@@ -13,7 +17,7 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
     private readonly IMinioClient _minio;
 
-    private const int Expiry = 60 * 60 * 24;
+    private const int Expiry = 60 * 60 * 12;
     private const string BucketName = "demo";
 
     public IndexModel(ILogger<IndexModel> logger, IMinioClient minio)
@@ -31,19 +35,36 @@ public class IndexModel : PageModel
     }
 
     [BindProperty]
+    public string ExpireString
+    {
+        get
+        {
+            TimeSpan time = TimeSpan.FromSeconds(Expiry);
+            return time.ToReadableString();
+        }
+    }
+
+    [BindProperty]
+    [Required]
     public IFormFile? Upload { get; set; }
     [BindProperty]
     public string UploadUrl { get; set; }
     [BindProperty] 
     public string UploadFileName { get; set; }
+    [BindProperty]
+    public string UploadTimeString { get; set; }
+    [BindProperty]
+    public string UploadRequestTimeString { get; set; }
 
     public async Task OnPostAsync()
     {
         if (Upload is not null)
         {
+            var requestSw = Stopwatch.StartNew();
             await using Stream ms = new MemoryStream();
             await Upload.CopyToAsync(ms);
             ms.Seek(0, SeekOrigin.Begin);
+            
             
             var putArgs = new PutObjectArgs()
                 .WithBucket(BucketName)
@@ -52,7 +73,9 @@ public class IndexModel : PageModel
                 .WithObjectSize(ms.Length)
                 .WithContentType("application/octet-stream");
             
+            var uploadSw = Stopwatch.StartNew();
             await _minio.PutObjectAsync(putArgs).ConfigureAwait(false);
+            uploadSw.Stop();
 
             var getArgs = new PresignedGetObjectArgs()
                 .WithBucket(BucketName)
@@ -60,7 +83,12 @@ public class IndexModel : PageModel
                 .WithExpiry(Expiry);
             
             UploadUrl = await _minio.PresignedGetObjectAsync(getArgs);
+            requestSw.Stop();
+            var uploadTime = TimeSpan.FromMilliseconds(uploadSw.ElapsedMilliseconds);
+            var requestTime = TimeSpan.FromMilliseconds(requestSw.ElapsedMilliseconds);
             UploadFileName = Upload.FileName;
+            UploadTimeString = uploadTime.ToReadableString();
+            UploadRequestTimeString = requestTime.ToReadableString();
         }
 
         await LoadStorageItems();
@@ -124,7 +152,8 @@ public class IndexModel : PageModel
         return Partial("_ShareUrlModal", new ShareModel
         {
             ObjectName = fileName,
-            ShareUrl = shareUrl
+            ShareUrl = shareUrl,
+            ExpireString = ExpireString
         });
     }
 }
